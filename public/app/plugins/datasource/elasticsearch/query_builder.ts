@@ -37,6 +37,21 @@ export class ElasticQueryBuilder {
   buildTermsAgg(aggDef: Terms, queryNode: { terms?: any; aggs?: any }, target: ElasticsearchQuery) {
     queryNode.terms = { field: aggDef.field };
 
+    var match;
+    if ((match = aggDef.field?.match(/^(.+?)(\+\+(.*?))?(\-\-(.*?))?$/)) != null) {
+      var tag = match[1];
+      var include = match[3];
+      var exclude = match[5];
+      queryNode.terms = { field: tag };
+      if (include) {
+        queryNode.terms.include = include;
+      }
+
+      if (exclude) {
+        queryNode.terms.exclude = exclude;
+      }
+    }
+
     if (!aggDef.settings) {
       return queryNode;
     }

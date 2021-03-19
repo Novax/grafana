@@ -24,6 +24,16 @@ export class ElasticQueryBuilder {
     var metricRef, metric, y;
     queryNode.terms = { field: aggDef.field };
 
+    var match;
+    if (match = aggDef.field.match(/^(.+?)(\+\+(.*?))?(\-\-(.*?))?$/)) {
+       var tag = match[1];
+       var include = match[3];
+       var exclude = match[5];
+       queryNode.terms = { "field": tag };
+       if (include) { queryNode.terms.include = include; }
+       if (exclude) { queryNode.terms.exclude = exclude; }
+    }
+
     if (!aggDef.settings) {
       return queryNode;
     }

@@ -43,7 +43,7 @@ func TestQueryCondition(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				So(ctx.condition.Query.From, ShouldEqual, "5m")
-				So(ctx.condition.Query.To, ShouldEqual, "now")
+				So(ctx.condition.Query.To, ShouldEqual, "now/h-1h")
 				So(ctx.condition.Query.DatasourceID, ShouldEqual, 1)
 
 				Convey("Can read query reducer", func() {
@@ -193,7 +193,7 @@ func (ctx *queryConditionTestContext) exec() (*alerting.ConditionResult, error) 
 	jsonModel, err := simplejson.NewJson([]byte(`{
             "type": "query",
             "query":  {
-              "params": ["A", "5m", "now"],
+              "params": ["A", "5m", "now/h-1h"],
               "datasourceId": 1,
               "model": {"target": "aliasByNode(statsd.fakesite.counters.session_start.mobile.count, 4)"}
             },

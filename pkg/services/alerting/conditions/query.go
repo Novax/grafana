@@ -1,14 +1,10 @@
 package conditions
 
 import (
+	gocontext "context"
 	"errors"
 	"fmt"
-	"strings"
-	"time"
-
 	"github.com/grafana/grafana/pkg/tsdb/prometheus"
-
-	gocontext "context"
 
 	"github.com/grafana/grafana-plugin-sdk-go/data"
 	"github.com/grafana/grafana/pkg/bus"
@@ -250,11 +246,7 @@ func newQueryCondition(model *simplejson.Json, index int) (*QueryCondition, erro
 	condition.Query.From = queryJSON.Get("params").MustArray()[1].(string)
 	condition.Query.To = queryJSON.Get("params").MustArray()[2].(string)
 
-	if err := validateFromValue(condition.Query.From); err != nil {
-		return nil, err
-	}
-
-	if err := validateToValue(condition.Query.To); err != nil {
+	if err := validateTimeRangeValue(condition.Query.From, condition.Query.To); err != nil {
 		return nil, err
 	}
 
@@ -277,26 +269,15 @@ func newQueryCondition(model *simplejson.Json, index int) (*QueryCondition, erro
 	return &condition, nil
 }
 
-func validateFromValue(from string) error {
-	fromRaw := strings.Replace(from, "now-", "", 1)
+func validateTimeRangeValue(from string,to string) error {
+	timeRange := tsdb.NewTimeRange(from, to)
+	_, err := timeRange.ParseFrom()
 
-	_, err := time.ParseDuration("-" + fromRaw)
-	return err
-}
-
-func validateToValue(to string) error {
-	if to == "now" {
-		return nil
-	} else if strings.HasPrefix(to, "now-") {
-		withoutNow := strings.Replace(to, "now-", "", 1)
-
-		_, err := time.ParseDuration("-" + withoutNow)
-		if err == nil {
-			return nil
-		}
+	if err != nil {
+		return err
 	}
 
-	_, err := time.ParseDuration(to)
+	_, err = timeRange.ParseTo()
 	return err
 }
 
